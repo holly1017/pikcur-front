@@ -1,46 +1,60 @@
-# Getting Started with Create React App
+# 🛒 PIKCUR
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**PIKCUR**는 React/TypeScript를 기반으로 한 **아이템 경매 및 리셀 플랫폼**입니다.
+단순한 이커머스를 넘어, 실시간 입찰 시스템과 안전한 결제 인프라, 효율적인 알림 시스템을 갖춘 프로젝트입니다.
+(백엔드 리포지토리: [PIKCUR-Back](https://github.com/holly1017/pikcur-back))
 
-## Available Scripts
 
-In the project directory, you can run:
+## ✨ 주요 기능
 
-### `npm start`
+- **경매 시스템**: 실시간 입찰, 입찰 내역 확인, 경매 종료 임박 상품 리스트 제공.
+- **상품 관리**: 카테고리별 상품 탐색, 상품 상세 설명 및 리뷰 시스템.
+- **검색 및 필터링**: 강력한 검색 기능과 브랜드/카테고리별 필터링 기능.
+- **마이페이지**: 개인 거래 내역(구매/판매), 입찰 현황, 찜한 상품 관리.
+- **실시간 알림 및 소통**: 소켓(SockJS/StompJS)을 이용한 실시간 업데이트.
+- **사용자 인증**: JWT 기반 로그인, 아이디/비밀번호 찾기, 회원가입.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## 🛠 기술 스택
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- **Core**: React 19, TypeScript
+- **Styling**: Material UI (MUI), Emotion
+- **State Management**: React Context API
+- **Networking**: Axios, SockJS, StompJS (Websocket)
+- **Routing**: React Router Dom v7
+- **Fonts**: Noto Sans KR (Fontsource)
 
-### `npm test`
+## 📁 폴더 구조
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+src/
+├── assets/          # 이미지 및 아이콘 자산
+├── common/          # API 설정 및 공용 유틸리티
+├── components/      # 재사용 가능한 UI 컴포넌트
+│   ├── common/      # 범용 컴포넌트 (버튼, 카드 등)
+│   └── layout/      # 레이아웃 관련 컴포넌트
+├── context/         # Auth 등 전역 상태 관리를 위한 Context
+├── pages/           # 라우트별 주요 페이지 구성
+│   ├── Auth/        # 인증 관련 (로그인, 회원가입)
+│   ├── Goods/       # 상품 및 경매 등록/상세
+│   ├── Main/        # 메인 페이지 및 검색
+│   ├── MyPage/      # 사용자 개인 대시보드
+│   ├── Store/       # 스토어 상세 및 거래 내역
+│   └── Contact/     # 고객센터 (FAQ, 1:1 문의)
+├── App.tsx          # 라우팅 및 앱 엔트리 포인트
+└── index.tsx        # 메인 렌더링 파일
+```
 
-### `npm run build`
+## 🚀 시작하기
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1. 의존성 설치
+```bash
+npm install
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 2. 로컬 개발 서버 실행
+```bash
+npm start
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 3. 환경 변수 설정
+`.env` 파일을 루트 디렉토리에 생성하고 필요한 API 엔드포인트 등을 설정
