@@ -94,7 +94,7 @@ const GoodsItem: React.FC<GoodsItemProps> = ({
                         component="img"
                         height={160}
                         width={160}
-                        image={API_BASE_URL + src}
+                        image={src}
                         alt={alt}
                         sx={{
                             borderRadius: '8px',

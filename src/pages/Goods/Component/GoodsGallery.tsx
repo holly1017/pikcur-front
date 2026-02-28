@@ -122,7 +122,7 @@ export default function GoodsGallery({ images }: GoodsGalleryProps) {
                 aria-label={`이미지 ${realIndex + 1}`}
               >
                 <img
-                  src={API_BASE_URL + src}
+                  src={src}
                   alt={`thumb-${realIndex + 1}`}
                   style={{
                     width: '100%',
@@ -180,7 +180,7 @@ export default function GoodsGallery({ images }: GoodsGalleryProps) {
         position: 'relative',
       }}>
         <img
-          src={API_BASE_URL + mainSrc}
+          src={mainSrc}
           alt="main"
           style={{
             width: isPortrait ? 'auto' : '100%',

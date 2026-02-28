@@ -26,7 +26,7 @@ instance.interceptors.response.use(
     (response) => response,
     (error) => {
         const originalRequest = error.config;
-        const data = error.response?.data;
+        const apiResponse = error.response?.data; // ApiResponse<T> 구조
 
         if (error.code === 'ERR_NETWORK') {
             alert("서버와 연결할 수 없습니다.");
@@ -34,23 +34,23 @@ instance.interceptors.response.use(
         }
 
         if (error.response?.status === 401) {
-
             if (!originalRequest.url?.includes("/auth/members/signin")) {
-
-                if (data?.code === "EXPIRATION") {
+                if (apiResponse?.code === "EXPIRATION") {
                     alert("로그인 시간이 만료되었습니다. 다시 로그인해주세요.");
-                } else if (data?.code === "NO_TOKEN") {
+                } else if (apiResponse?.code === "NO_TOKEN") {
                     alert("로그인이 필요합니다.");
                 } else {
-                    alert(data?.message || "인증 정보가 유효하지 않습니다.");
+                    alert(apiResponse?.message || "인증 정보가 유효하지 않습니다.");
                 }
-
                 logout();
             }
-        }
-
-        else {
-            if (data?.message) alert(data.message);
+        } else {
+            // 백엔드에서 보낸 에러 메시지가 있으면 alert로 표시
+            if (apiResponse?.message) {
+                alert(apiResponse.message);
+            } else {
+                alert("알 수 없는 오류가 발생했습니다.");
+            }
         }
 
         return Promise.reject(error);
@@ -83,6 +83,13 @@ export const apiRequest = async <T = any>(
     }
 
     const res = await instance(finalConfig);
+
+    // 백엔드가 ApiResponse<T> 구조로 보내므로, 실제 데이터인 .data.data를 반환
+    // 만약 기존처럼 데이터가 직접 오는 경우를 대비해 체크 로직 추가 가능
+    if (res.data && res.data.hasOwnProperty('success') && res.data.hasOwnProperty('data')) {
+        return res.data.data as T;
+    }
+
     return res.data as T;
 };
 
