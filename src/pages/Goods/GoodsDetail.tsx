@@ -9,11 +9,11 @@ import ReviewSummary from '../../components/common/ReviewSummary';
 import CustomTable from '../../components/common/CustomTable';
 import CustomModal from '../../components/common/CustomModal';
 import {
-  faBan, faHeart as faHeartSolid
+    faBan, faHeart as faHeartSolid
 } from '@fortawesome/free-solid-svg-icons';
 import { ManageModalHandle } from '../Auth/SignUp/component/TermsOfServiceModal';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { api } from '../../common/api';
+import { stompClient, api } from '../../common/api';
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import { useAuth } from '../../context/AuthContext';
 import PaginationButtons from '../../components/common/PaginationButtons';
@@ -86,164 +86,174 @@ const GoodsDetail: React.FC = () => {
 
     useEffect(() => {
         if (window.IMP) {
-          window.IMP.init('imp57185518'); // ⚠️ 가맹점 식별코드
+            window.IMP.init('imp57185518'); // ⚠️ 가맹점 식별코드
         } else {
-          console.error("window.IMP를 찾지 못했습니다. index.html을 확인하세요.");
+            console.error("window.IMP를 찾지 못했습니다. index.html을 확인하세요.");
         }
-      }, []);
+    }, []);
 
     const handlePay = () => {
         console.log('--- handlePay 함수 시작 ---');
-    
+
         const IMP = window.IMP;
         if (!IMP) {
-          console.error('❌ 결제 중단: 아임포트(IMP) 로드 실패');
-          alert('아임포트 로드 실패');
-          return;
+            console.error('❌ 결제 중단: 아임포트(IMP) 로드 실패');
+            alert('아임포트 로드 실패');
+            return;
         }
-    
-        console.log('아임포트에 결제 요청을 보냅니다...');
-    
-        IMP.request_pay(
-          {
-            pg: 'html5_inicis',
-            pay_method: 'card',
-            merchant_uid: `mid_${new Date().getTime()}`,
-            name: goods?.goodsName,
-            amount: payPrice,
-            buyer_name: buyerName,
-            buyer_tel: phone,
-            buyer_addr: `${address} ${detailAddress}`,
-          },
-          (rsp: any) => {
-            if (rsp.success) {
-              console.log('✅ 아임포트 결제 성공!', rsp);
-              alert('✅ 결제가 완료되었습니다.\n결제번호: ' + rsp.imp_uid);
-              payModalRef.current?.closeModal();
-    
-              console.log('이제 백엔드로 fetch 요청을 보냅니다...');
 
-              api.post(`/payment/verify`, {
-                impUid: rsp.imp_uid,
-                merchantUid: rsp.merchant_uid,
+        console.log('아임포트에 결제 요청을 보냅니다...');
+
+        IMP.request_pay(
+            {
+                pg: 'html5_inicis',
+                pay_method: 'card',
+                merchant_uid: `mid_${new Date().getTime()}`,
+                name: goods?.goodsName,
                 amount: payPrice,
-                goodsId: goods?.goodsId,
-              })
-              .then((res) => {
-                  console.log("서버 응답:", res);
-              
-                  if (res.status !== "success") {
-                      throw new Error('결제 검증 실패');
-                  }
-              
-                  alert(res.message);
-              })
-              .catch((err) => {
-                  console.error(' .catch 에러:', err);
-                  alert(err.message);
-              });
-              
-            } else {
-              console.error('❌ 아임포트 결제 실패!', rsp);
-              alert('❌ 결제가 실패하였습니다: ' + rsp.error_msg);
+                buyer_name: buyerName,
+                buyer_tel: phone,
+                buyer_addr: `${address} ${detailAddress}`,
+            },
+            (rsp: any) => {
+                if (rsp.success) {
+                    console.log('✅ 아임포트 결제 성공!', rsp);
+                    alert('✅ 결제가 완료되었습니다.\n결제번호: ' + rsp.imp_uid);
+                    payModalRef.current?.closeModal();
+
+                    console.log('이제 백엔드로 fetch 요청을 보냅니다...');
+
+                    api.post(`/payment/verify`, {
+                        impUid: rsp.imp_uid,
+                        merchantUid: rsp.merchant_uid,
+                        amount: payPrice,
+                        goodsId: goods?.goodsId,
+                    })
+                        .then((res) => {
+                            console.log("서버 응답:", res);
+
+                            if (res.status !== "success") {
+                                throw new Error('결제 검증 실패');
+                            }
+
+                            alert(res.message);
+                        })
+                        .catch((err) => {
+                            console.error(' .catch 에러:', err);
+                            alert(err.message);
+                        });
+
+                } else {
+                    console.error('❌ 아임포트 결제 실패!', rsp);
+                    alert('❌ 결제가 실패하였습니다: ' + rsp.error_msg);
+                }
             }
-          }
         );
-      };
+    };
 
     const handleGoodsReport = () => {
         if (location.state.goodsId) {
             const goodsId = location.state.goodsId;
             api.post(`/goods/report/${goodsId}`)
-            .then((res)=>{
-                alert('신고 처리 로직 실행');
-            })
-            .catch((err)=>{
-                console.log(err);
-            })
-    }
+                .then((res) => {
+                    alert('신고 처리 로직 실행');
+                })
+                .catch((err) => {
+                    console.log(err);
+                })
+        }
     }
 
     const formattedQuestionList = questionList.map((q, index) => ({
         questionId: q.questionId,
         title: q.title,
-        createDate: q.createDate.substring(0, 10), 
+        createDate: q.createDate.substring(0, 10),
         answer: (
-        <Typography fontWeight="bold">
-            {q.answer ? "답변 완료" : "답변 대기"}
-        </Typography>
+            <Typography fontWeight="bold">
+                {q.answer ? "답변 완료" : "답변 대기"}
+            </Typography>
         ),
     }));
 
     const openAddressPopup = () => {
         if (window.daum && window.daum.Postcode) {
-          new window.daum.Postcode({
-            oncomplete: function (data: any) {
-              const fullAddress = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
-              setAddress(fullAddress);
-            }
-          }).open();
+            new window.daum.Postcode({
+                oncomplete: function (data: any) {
+                    const fullAddress = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
+                    setAddress(fullAddress);
+                }
+            }).open();
         } else {
-          alert('주소 검색 서비스를 불러올 수 없습니다.');
+            alert('주소 검색 서비스를 불러올 수 없습니다.');
         }
-      };
+    };
 
     useEffect(() => {
         if (location.state.goodsId) {
             const goodsId = location.state.goodsId;
+
+            // 실시간 입찰가 업데이트: 해당 상품 채널을 구독합니다.
+            // 다른 사용자가 입찰하면 현재 입찰가가 새로고침 없이 즉시 갱신됩니다.
+            const subscription = stompClient.subscribe(`/topic/goods/${goodsId}`, (message: any) => {
+                const newBid = JSON.parse(message.body);
+                setGoods(prev => prev ? { ...prev, currentBidPrice: newBid.bidPrice } : prev);
+            });
+
             api.get(`/goods/${goodsId}`)
-            .then((res) => {
-                console.log(res);
-                setGoods(res);
-            })
-            .catch((err) => {
-                console.log("🔥 에러:", err);
-            });
+                .then((res) => {
+                    console.log(res);
+                    setGoods(res);
+                })
+                .catch((err) => {
+                    console.log("🔥 에러:", err);
+                });
 
-            api.get(`/goods/${goodsId}/questions`, {currentPage})
-            .then((res) => {
-                console.log(res);
-                setQuestionList(res.questionList);
-                setTotalPages(res.totalPages || 1);
-            })
-            .catch((err) => {
-                console.log("🔥 에러:", err);
-            });
+            api.get(`/goods/${goodsId}/questions`, { currentPage })
+                .then((res) => {
+                    console.log(res);
+                    setQuestionList(res.questionList);
+                    setTotalPages(res.totalPages || 1);
+                })
+                .catch((err) => {
+                    console.log("🔥 에러:", err);
+                });
 
+            // 페이지 이탈 시 구독 해제 (메모리 누수 방지)
+            return () => subscription.unsubscribe();
         }
     }, []);
 
-    const handleStoreDetail = (storeId:number) => {
-        navigate("/storeDetail", {state:{storeId}});
+    const handleStoreDetail = (storeId: number) => {
+        navigate("/storeDetail", { state: { storeId } });
     }
-    const handleQuestionForm = (goodsId:number) => {
-        navigate("/questionForm", {state:{goodsId}});
+    const handleQuestionForm = (goodsId: number) => {
+        navigate("/questionForm", { state: { goodsId } });
     }
-    const handleQuestionDetail = (questionId:number) => {
-        navigate("/questionDetail", {state:{questionId}});
+    const handleQuestionDetail = (questionId: number) => {
+        navigate("/questionDetail", { state: { questionId } });
     }
 
     const handleHeartClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         const goodsId = goods?.goodsId;
 
-        if (goods?.liked) { 
-            if(isAuth) {
+        if (goods?.liked) {
+            if (isAuth) {
                 api.delete(`/goods/like/${goodsId}`)
-                .then(() => {
-                    updateLikeState(false);
-                })
-                .catch((err) => console.log("🔥 에러:", err));
+                    .then(() => {
+                        updateLikeState(false);
+                    })
+                    .catch((err) => console.log("🔥 에러:", err));
             } else {
                 alert("로그인이 필요합니다.");
             }
-        } else { 
-            if(isAuth) {
+        } else {
+            if (isAuth) {
                 api.post(`/goods/like/${goodsId}`)
-                .then(() => {
-                    updateLikeState(true);
-                })
-                .catch((err) => console.log("🔥 에러:", err));
+                    .then(() => {
+                        updateLikeState(true);
+                    })
+                    .catch((err) => console.log("🔥 에러:", err));
             } else {
                 alert("로그인이 필요합니다.");
             }
@@ -253,9 +263,9 @@ const GoodsDetail: React.FC = () => {
     const updateLikeState = (status: boolean) => {
         setGoods(prevGoods => {
             if (prevGoods) {
-                return { 
-                    ...prevGoods, 
-                    liked: status 
+                return {
+                    ...prevGoods,
+                    liked: status
                 };
             }
             return prevGoods;
@@ -266,8 +276,8 @@ const GoodsDetail: React.FC = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleBidPage = (goodsId:number) => {
-        navigate("/bidRegister", {state:{goodsId}})
+    const handleBidPage = (goodsId: number) => {
+        navigate("/bidRegister", { state: { goodsId } })
     }
 
     return (
@@ -284,7 +294,7 @@ const GoodsDetail: React.FC = () => {
                                     flexDirection: 'column',
                                     minHeight: 0,
                                     overflow: 'hidden',
-                                    marginRight:'20px'
+                                    marginRight: '20px'
                                 }}
                             >
                                 <GoodsGallery
@@ -371,7 +381,7 @@ const GoodsDetail: React.FC = () => {
                                         >
                                             <FontAwesomeIcon icon={goods?.liked ? faHeartSolid : faHeartRegular} style={{ color: '#FF5050', fontSize: 22 }} />
                                         </button>
-                                        <Button style={{ backgroundColor: '#141414', height: 40, width: 120, color: '#FFFFFF' }} onClick={()=>handleBidPage(goods?.goodsId || 0)}>입찰</Button>
+                                        <Button style={{ backgroundColor: '#141414', height: 40, width: 120, color: '#FFFFFF' }} onClick={() => handleBidPage(goods?.goodsId || 0)}>입찰</Button>
                                         <Button
                                             style={{ backgroundColor: '#F2F2F2', height: 40, width: 120, color: '#141414', border: '1px solid #D9D9D9' }}
                                             onClick={() => {
@@ -399,13 +409,13 @@ const GoodsDetail: React.FC = () => {
                                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, height: '74px' }}>
                                             <div style={{ marginLeft: 8 }}>
-                                                <CustomAvatar src={goods?.storeInfo.imagePath}/>
+                                                <CustomAvatar src={goods?.storeInfo.imagePath} />
                                             </div>
-                                            <div style={{'cursor': 'pointer'}}
-                                                onClick={()=>{handleStoreDetail(goods?.storeInfo.storeId?? 0)}}
+                                            <div style={{ 'cursor': 'pointer' }}
+                                                onClick={() => { handleStoreDetail(goods?.storeInfo.storeId ?? 0) }}
                                             >{goods?.storeInfo.storeName}</div>
                                             <div style={{ marginRight: 8 }}>
-                                                <ReviewSummary value={goods?.storeInfo.averageRating?? 0} reviewCnt={goods?.storeInfo.reviewCount?? 0} storeId={goods?.storeInfo.storeId?? 0}/>
+                                                <ReviewSummary value={goods?.storeInfo.averageRating ?? 0} reviewCnt={goods?.storeInfo.reviewCount ?? 0} storeId={goods?.storeInfo.storeId ?? 0} />
                                             </div>
                                         </div>
                                     </div>
@@ -421,15 +431,15 @@ const GoodsDetail: React.FC = () => {
                         <div style={{ marginTop: 30, minHeight: 200, fontSize: 18, paddingBottom: 50 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <div>상점 문의</div>
-                                <Button 
-                                onClick={()=>{handleQuestionForm(goods?.goodsId ?? 0)}}
-                                style={{ height: 35, width: 89, backgroundColor: '#141414', color: '#fff' }}>문의하기</Button>
+                                <Button
+                                    onClick={() => { handleQuestionForm(goods?.goodsId ?? 0) }}
+                                    style={{ height: 35, width: 89, backgroundColor: '#141414', color: '#fff' }}>문의하기</Button>
                             </div>
 
-                            <div style={{ marginTop: 14, marginBottom:14 }}>
+                            <div style={{ marginTop: 14, marginBottom: 14 }}>
                                 <CustomTable
                                     width={"100%"}
-                                    columns={ [
+                                    columns={[
                                         { field: "title", headerName: "문의 제목" },
                                         { field: "answer", headerName: "답변 여부" },
                                         { field: "createDate", headerName: "날짜" },
@@ -443,7 +453,7 @@ const GoodsDetail: React.FC = () => {
                                 page={currentPage}
                                 onChange={handlePageChange}></PaginationButtons>
                         </div>
- 
+
                         <CustomModal
                             ref={payModalRef}
                             title="결제"
